@@ -13,7 +13,7 @@ export const App = () => {
   return (
     <div className="App">
       <MenuBar />
-      <Divider style={{ borderColor: '#000' }} variant='solid' orientation='right' />
+      <Divider style={{ borderColor: '#000' }} variant='solid' />
       <Routes>
         <Route path={ROUTES.HOME} element={<MainPage />} />
         <Route path={ROUTES.FAVORITES} element={<FavoriteTodoPage />} />

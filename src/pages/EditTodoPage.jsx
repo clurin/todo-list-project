@@ -9,6 +9,9 @@ export const EditTodoPage = () => {
     const { id } = useParams()
     const [todo, setTodo] = useState()
     const [todoList, setTodoList] = useState(JSON.parse(localStorage.getItem('todoList')))
+    const [tempTitle, setTempTitle] = useState('');
+    const [tempDescription, setTempDescription] = useState('');
+    const [isChanged, setIsChanged] = useState(false);
 
     useEffect(() => {
         if (todoList) {

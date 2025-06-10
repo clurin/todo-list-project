@@ -1,44 +1,62 @@
-import { Typography, Space, Divider, Button } from 'antd'
+import { Typography, Space, Button } from 'antd'
 import { EditFilled, StarFilled, StarOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
-import { getTodoList } from '../storage/storage'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateListTodoSlice } from '../store/listTodoSlice'
+import { updateTodoList } from '../storage/storage'
 
 export const ListTodo = ({ value }) => {
-    let todoList = getTodoList().todo
+    const todos = useSelector((state) => state.listTodoSlice.listTodo)
+    const dispatch = useDispatch()
 
-    if (value === 'MainPage') {
-        todoList = todoList.filter((item) => !item.isDeleted)
-    } else if (value === 'FavoriteTodoPage') {
-        todoList = todoList.filter((item) => !item.isDeleted && item.isFavorite)
-    } else if (value === 'DeletedTodoPage') {
-        todoList = todoList.filter((item) => item.isDeleted)
-    } else if (value === 'CompletedTodoPage') {
-        todoList = todoList.filter((item) => !item.isActive && !item.isDeleted)
+    let filteredTodos
+    switch (value) {
+        case 'MainPage':
+            filteredTodos = todos.filter((item) => !item.isDeleted)
+            break
+        case 'FavoriteTodoPage':
+            filteredTodos = todos.filter((item) => !item.isDeleted && item.isFavorite)
+            break
+        case 'DeletedTodoPage':
+            filteredTodos = todos.filter((item) => item.isDeleted)
+            break
+        case 'CompletedTodoPage':
+            filteredTodos = todos.filter((item) => !item.isActive && !item.isDeleted)
+            break
+        default:
+            filteredTodos = todos
+    }
+    filteredTodos = filteredTodos.sort((a, b) => b.createdAt - a.createdAt);
+
+    const toggleFavorite = (id) => {
+        const updatedTodos = todos.map((item) => item.id === id ? { ...item, isFavorite: !item.isFavorite } : item)
+
+        dispatch(updateListTodoSlice(updatedTodos))
+        updateTodoList(updatedTodos)
     }
 
     return (
         <div>
-            {todoList?.map(item => (
+            {filteredTodos.map((item) => (
                 <div key={item.id} style={{ width: '50%', margin: 'auto', textAlign: 'left' }}>
                     <Space direction='vertical'>
                         <Typography.Title level={3}>
                             {item.title}
-
-                            {
-                                !item.isDeleted && (
-                                    <Link style={{ margin: `20px` }} to={`${ROUTES.EDIT}/${item.id}`}>
-                                        <Button
-                                            type="primary"
-                                            icon={<EditFilled />}
-                                            shape="circle"
-                                        />
-                                    </Link>
-                                )
-                            }
-
-                            {!item.isDeleted && (item.isFavorite ? <StarFilled /> : <StarOutlined />)}
-
+                            {!item.isDeleted && (
+                                <Link style={{ margin: `20px` }} to={`${ROUTES.EDIT}/${item.id}`}>
+                                    <Button
+                                        type="primary"
+                                        icon={<EditFilled />}
+                                        shape="circle" />
+                                </Link>
+                            )}
+                            {!item.isDeleted && (
+                                <Button
+                                    type="text"
+                                    icon={item.isFavorite ? <StarFilled /> : <StarOutlined />}
+                                    onClick={() => toggleFavorite(item.id)} />
+                            )}
                         </Typography.Title>
                         <Typography.Paragraph ellipsis={{ rows: 2 }}>
                             {item.description}
@@ -47,10 +65,10 @@ export const ListTodo = ({ value }) => {
                             Задача {item.isActive ? 'активна' : 'выполнена'}
                         </Typography.Paragraph>
                         <Typography.Paragraph>
-                            Создана: {item.createdAt}
+                            Создана: {Intl.DateTimeFormat('ru').format(item.createdAt)}
                         </Typography.Paragraph>
-                        <Divider style={{ borderColor: '#000' }} variant='solid' orientation='right' />
                     </Space>
+                    <hr style={{ width: '100%' }} />
                 </div>
             ))}
         </div>

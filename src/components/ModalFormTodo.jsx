@@ -2,12 +2,15 @@ import { Button, Input, Modal } from 'antd'
 import TextArea from 'antd/es/input/TextArea'
 import { useState } from 'react'
 import { getTodoList, updateTodoList } from '../storage/storage'
+import { useDispatch } from 'react-redux'
+import { updateListTodoSlice } from '../store/listTodoSlice'
 
 export const ModalFormTodo = () => {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [titleValue, setTitleValue] = useState('')
     const [descriptionValue, setDescriptionValue] = useState('')
     const todoList = getTodoList()
+    const dispatch = useDispatch()
 
     const showModal = () => {
         setIsModalOpen(true)
@@ -15,21 +18,21 @@ export const ModalFormTodo = () => {
 
     const addTodo = () => {
         if (!titleValue.trim()) return
-        const time = new Date()
+        const time = Date.now()
         const newTodo = {
-            id: String(todoList.todo.length + 1),
+            id: String(todoList.length + 1),
             title: titleValue,
             description: descriptionValue,
-            createdAt: `${time.getDate()}/${time.getMonth() + 1}/${time.getFullYear()}`,
+            createdAt: `${time}`,
             isActive: true,
             isFavorite: false,
             isDeleted: false
         }
 
-        const currentList = getTodoList().todo
+        const currentList = getTodoList()
         const updatedList = { todo: [...currentList, newTodo] }
-        console.log(updatedList)
         updateTodoList(updatedList)
+        dispatch(updateListTodoSlice(updatedList.todo))
 
         setTitleValue('')
         setDescriptionValue('')
@@ -47,27 +50,22 @@ export const ModalFormTodo = () => {
             <Button onClick={showModal}>
                 Добавить задачу
             </Button>
-            <Modal
-                title="Добавить новую задачу"
+            <Modal title="Добавить новую задачу"
                 open={isModalOpen}
                 onOk={addTodo}
                 onCancel={cancelFunction}
                 okText="Добавить"
                 cancelText="Закрыть">
                 <div style={{ margin: '20px 0' }}>
-                    <Input
-                        placeholder='Заголовок'
+                    <Input placeholder='Заголовок'
                         value={titleValue}
-                        onChange={(e) => setTitleValue(e.target.value)}
-                    />
+                        onChange={(e) => setTitleValue(e.target.value)} />
                 </div>
                 <div style={{ margin: '20px 0' }}>
-                    <TextArea
-                        placeholder='Описание'
+                    <TextArea placeholder='Описание'
                         style={{ height: '120px', resize: 'none' }}
                         value={descriptionValue}
-                        onChange={(e) => setDescriptionValue(e.target.value)}
-                    />
+                        onChange={(e) => setDescriptionValue(e.target.value)} />
                 </div>
             </Modal>
         </div>
