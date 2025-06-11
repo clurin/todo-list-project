@@ -1,5 +1,5 @@
 import React from 'react'
-import { ListTodo } from '../components/ListTodo'
+import { ListTodo } from '../components/ListTodo/ListTodo'
 
 export const CompletedTodoPage = () => {
   return (

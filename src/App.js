@@ -7,7 +7,8 @@ import { CompletedTodoPage } from './pages/CompletedTodoPage';
 import { DeletedTodoPage } from './pages/DeletedTodoPage';
 import { ROUTES } from './constants/routes';
 import { Divider } from 'antd';
-import { EditTodoPage } from './pages/EditTodoPage';
+import { EditTodoPage } from './pages/EditTodoPage/EditTodoPage';
+import { DetailTodoPage } from './pages/DetailTodoPage/DetailTodoPage';
 
 export const App = () => {
   return (
@@ -20,6 +21,7 @@ export const App = () => {
         <Route path={ROUTES.COMPLETED} element={<CompletedTodoPage />} />
         <Route path={ROUTES.DELETED} element={<DeletedTodoPage />} />
         <Route path={`${ROUTES.EDIT}/:id`} element={<EditTodoPage />} />
+        <Route path={`${ROUTES.DETAIL}/:id`} element={<DetailTodoPage />} />
       </Routes>
     </div>
   )

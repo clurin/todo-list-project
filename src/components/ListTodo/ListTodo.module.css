@@ -1,0 +1,13 @@
+.todoContainer {
+    width: 50%;
+    margin: auto;
+    text-align: left;
+}
+
+.editLink {
+    margin: 0 20px;
+}
+
+.divider {
+    width: 100%;
+}

@@ -1,0 +1,13 @@
+.container {
+  width: 50%;
+  margin: auto;
+  text-align: left;
+}
+
+.editLink {
+  margin: 20px;
+}
+
+.paragraphSpacing {
+  word-spacing: 10px;
+}

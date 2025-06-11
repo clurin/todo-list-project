@@ -3,5 +3,6 @@ export const ROUTES = {
     FAVORITES: '/favorites',
     COMPLETED: '/completed',
     DELETED: '/deleted',
-    EDIT: '/edit'
+    EDIT: '/edit',
+    DETAIL: '/detail'
 }

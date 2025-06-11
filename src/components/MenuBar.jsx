@@ -1,15 +1,29 @@
-import { Segmented } from 'antd';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ROUTES } from '../constants/routes';
+import { Segmented } from 'antd'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { ROUTES } from '../constants/routes'
 
 export const MenuBar = () => {
     const navigate = useNavigate()
-    const location = useLocation();
+    const location = useLocation()
 
-    let current = 'Главная';
-    if (location.pathname === ROUTES.FAVORITES) current = 'Избранные';
-    else if (location.pathname === ROUTES.COMPLETED) current = 'Выполненные';
-    else if (location.pathname === ROUTES.DELETED) current = 'Удалённые';
+    let current
+
+    switch (location.pathname) {
+        case ROUTES.HOME:
+            current = 'Главная'
+            break
+        case ROUTES.FAVORITES:
+            current = 'Избранные'
+            break
+        case ROUTES.COMPLETED:
+            current = 'Выполненные'
+            break
+        case ROUTES.DELETED:
+            current = 'Удалённые'
+            break
+        default:
+            current = undefined
+    }
     return (
         <div>
             <Segmented options={['Главная', 'Избранные', 'Выполненные', 'Удалённые']}
@@ -27,7 +41,7 @@ export const MenuBar = () => {
                         case 'Удалённые':
                             return navigate(ROUTES.DELETED)
                         default:
-                            return navigate(ROUTES.HOME) 
+                            return navigate(ROUTES.HOME)
                     }
                 }}
             />

@@ -1,5 +1,5 @@
 import React from 'react'
-import { ListTodo } from '../components/ListTodo'
+import { ListTodo } from '../components/ListTodo/ListTodo'
 import { ModalFormTodo } from '../components/ModalFormTodo'
 
 export const MainPage = () => {

@@ -30,9 +30,9 @@ export const ModalFormTodo = () => {
         }
 
         const currentList = getTodoList()
-        const updatedList = { todo: [...currentList, newTodo] }
+        const updatedList = [...currentList, newTodo]
         updateTodoList(updatedList)
-        dispatch(updateListTodoSlice(updatedList.todo))
+        dispatch(updateListTodoSlice(updatedList))
 
         setTitleValue('')
         setDescriptionValue('')
