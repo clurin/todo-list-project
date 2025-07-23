@@ -83,7 +83,7 @@ export const EditTodoPage = () => {
                     value={tempDescription}
                     onChange={(e) => setTempDescription(e.target.value)}
                     placeholder="Опишите задачу"
-                    style={{ height: '350px', resize: 'none' }}
+                    className={styles.textArea}
                 />
                 <Space>
                     <Typography.Paragraph>

@@ -1,0 +1,8 @@
+.inputWrapper {
+  margin: 20px 0;
+}
+
+.textArea {
+  height: 120px;
+  resize: none;
+}

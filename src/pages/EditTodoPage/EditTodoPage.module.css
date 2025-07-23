@@ -13,3 +13,8 @@
 .switchMargin {
     margin: 0 25px;
 }
+
+.textArea {
+    height: '350px';
+    resize: 'none'
+}
