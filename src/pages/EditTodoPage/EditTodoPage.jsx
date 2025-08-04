@@ -1,90 +1,92 @@
-import { Input, Switch, Space, Button, Modal, Typography, message, Flex } from 'antd'
-import { CheckOutlined, CloseOutlined, StarFilled, StarOutlined } from '@ant-design/icons'
+import { Input, Switch, Space, Button, Modal, Typography, message, Flex, Form, } from 'antd'
+import { CheckOutlined, CloseOutlined, StarFilled, StarOutlined, } from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { getTodoList, updateTodoList } from '../../storage/storage'
-import { useDispatch } from 'react-redux'
+import { updateTodoList } from '../../storage/storage'
+import { useDispatch, useSelector } from 'react-redux'
 import { updateListTodoSlice } from '../../store/listTodoSlice'
 import TextArea from 'antd/es/input/TextArea'
 import styles from './EditTodoPage.module.css'
+import { selectorTodoById } from '../../store/selectorTodoById'
 
 export const EditTodoPage = () => {
-    const [messageApi, contextHolder] = message.useMessage()
-    const navigate = useNavigate()
-    const [isModalOpen, setIsModalOpen] = useState(false)
     const { id } = useParams()
-    const [todo, setTodo] = useState()
-    const [todoList, setTodoList] = useState(getTodoList())
-    const [tempTitle, setTempTitle] = useState('')
-    const [tempDescription, setTempDescription] = useState('')
+    const [messageApi, contextHolder] = message.useMessage()
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const todo = useSelector((state) => selectorTodoById(state, id))
+    const [form] = Form.useForm()
+    const navigate = useNavigate()
     const dispatch = useDispatch()
 
-    useEffect(() => {
-        if (todoList) {
-            const foundTodo = todoList.find((item) => item.id === id)
-            if (foundTodo) {
-                setTodo(foundTodo)
-                setTempTitle(foundTodo.title)
-                setTempDescription(foundTodo.description || '')
-            }
-        }
-    }, [id, todoList])
-
-    if (!todo) return <h1>todo нет</h1>
-
-    const saveFunction = () => {
-        messageApi.info('Задача успешно обновлена')
-        const updatedTodoList = todoList.map((item) => item.id === id ? { ...item, title: tempTitle, description: tempDescription } : item)
-        setTodoList(updatedTodoList)
-        updateTodoList(updatedTodoList)
-        dispatch(updateListTodoSlice(updatedTodoList))
-        setTodo((item) => ({ ...item, title: tempTitle, description: tempDescription }))
+    const syncTodoList = (updatedList) => {
+        updateTodoList(updatedList)
+        dispatch(updateListTodoSlice(updatedList))
     }
 
-    const switchStatus = () => {
-        const updatedTodoList = todoList.map((item) => item.id === id ? { ...item, isActive: !item.isActive } : item)
-        setTodoList(updatedTodoList)
-        updateTodoList(updatedTodoList)
-        dispatch(updateListTodoSlice(updatedTodoList))
-        setTodo((item) => ({ ...item, isActive: !item.isActive }))
+    const updateField = (field, value) => {
+        const updatedList = todoList.map((item) =>
+            item.id === id ? { ...item, [field]: value } : item
+        )
+        syncTodoList(updatedList)
+        setTodo((prev) => ({ ...prev, [field]: value }))
     }
 
-    const switchFavorite = () => {
-        const updatedTodoList = todoList.map((item) => item.id === id ? { ...item, isFavorite: !item.isFavorite } : item)
-        setTodoList(updatedTodoList)
-        updateTodoList(updatedTodoList)
-        dispatch(updateListTodoSlice(updatedTodoList))
-        setTodo((item) => ({ ...item, isFavorite: !item.isFavorite }))
+    const saveFunction = async (values) => {
+        setLoading(true)
+        const updatedList = todoList.map((item) =>
+            item.id === id ? { ...item, ...values } : item
+        )
+        syncTodoList(updatedList)
+        setTodo((prev) => ({ ...prev, ...values }))
+        messageApi.success('Задача успешно обновлена')
+        setLoading(false)
     }
 
     const deleteTodo = () => {
-        const updatedTodoList = todoList.map((item) => item.id === id ? { ...item, isDeleted: true } : item)
-        setTodoList(updatedTodoList)
-        updateTodoList(updatedTodoList)
-        dispatch(updateListTodoSlice(updatedTodoList))
-        setTodo((item) => ({ ...item, isDeleted: true }))
+        updateField('isDeleted', true)
         setIsModalOpen(false)
         navigate('/')
     }
 
-    const showModal = () => setIsModalOpen(true)
+    if (!todo) return <h1>todo нет</h1>
+
     return (
-        <div className={styles.container} key={todo.id}>
+        <div className={styles.container}>
             <Flex className={styles.flexColumn}>
-                <Input
-                    value={tempTitle}
-                    onChange={(e) => setTempTitle(e.target.value)}
-                    maxLength={256}
-                />
-                {todo.isFavorite ? <StarFilled /> : <StarOutlined />}
-                <TextArea
-                    showCount
-                    maxLength={1024}
-                    value={tempDescription}
-                    onChange={(e) => setTempDescription(e.target.value)}
-                    placeholder="Опишите задачу"
-                    className={styles.textArea}
-                />
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={saveFunction}
+                    initialValues={{
+                        title: todo.title,
+                        description: todo.description || '',
+                    }}
+                >
+                    <Form.Item name="title">
+                        <Input maxLength={256} />
+                    </Form.Item>
+
+                    {todo.isFavorite ? <StarFilled /> : <StarOutlined />}
+
+                    <Form.Item name="description">
+                        <TextArea
+                            showCount
+                            maxLength={1024}
+                            placeholder="Опишите задачу"
+                            className={styles.textArea}
+                        />
+                    </Form.Item>
+
+                    <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={loading}
+                    >
+                        Сохранить изменения
+                    </Button>
+                </Form>
+
                 <Space>
                     <Typography.Paragraph>
                         Задача {todo.isActive ? 'активна' : 'выполнена'}
@@ -93,7 +95,9 @@ export const EditTodoPage = () => {
                             checkedChildren={<CheckOutlined />}
                             unCheckedChildren={<CloseOutlined />}
                             checked={todo.isActive}
-                            onChange={switchStatus}
+                            onChange={() =>
+                                updateField('isActive', !todo.isActive)
+                            }
                         />
                     </Typography.Paragraph>
                     <Typography.Paragraph>
@@ -103,17 +107,19 @@ export const EditTodoPage = () => {
                             checkedChildren={<CheckOutlined />}
                             unCheckedChildren={<CloseOutlined />}
                             checked={todo.isFavorite}
-                            onChange={switchFavorite}
+                            onChange={() =>
+                                updateField('isFavorite', !todo.isFavorite)
+                            }
                         />
                     </Typography.Paragraph>
                 </Space>
+
                 {contextHolder}
-                <Button type="primary" onClick={saveFunction}>
-                    Сохранить изменения
-                </Button>
-                <Button danger onClick={showModal}>
+
+                <Button danger onClick={() => setIsModalOpen(true)}>
                     Удалить задачу
                 </Button>
+
                 <Modal
                     title="Вы уверены, что хотите удалить эту задачу?"
                     open={isModalOpen}

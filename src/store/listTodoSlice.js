@@ -1,10 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getTodoList } from "../storage/storage";
-
 
 const listTodoSlice = createSlice({
     name: 'listTodoSlice',
-    initialState: { listTodo: getTodoList() },
+    initialState: { listTodo: [] },
 
     reducers: {
         updateListTodoSlice: (state, action) => {

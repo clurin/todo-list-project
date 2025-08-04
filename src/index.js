@@ -5,6 +5,8 @@ import { BrowserRouter } from 'react-router-dom';
 import store from './store';
 import { Provider } from 'react-redux'
 
+store.dispatch({ type: 'INIT_TODO_LIST' })
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <Provider store={store}>

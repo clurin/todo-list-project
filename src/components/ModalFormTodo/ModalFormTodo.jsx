@@ -1,49 +1,26 @@
-import { Button, Input, Modal } from 'antd'
-import TextArea from 'antd/es/input/TextArea'
+import { Button, Form, Input, Modal } from 'antd'
 import { useState } from 'react'
-import { getTodoList, updateTodoList } from '../../storage/storage'
 import { useDispatch } from 'react-redux'
-import { updateListTodoSlice } from '../../store/listTodoSlice'
 import styles from './ModalFormTodoStyle.module.css'
+import { addTodoHandler } from '../../utils/todoHandler'
+
+const { TextArea } = Input
 
 export const ModalFormTodo = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [titleValue, setTitleValue] = useState('')
-  const [descriptionValue, setDescriptionValue] = useState('')
-  const todoList = getTodoList()
+  const [form] = Form.useForm()
   const dispatch = useDispatch()
+  const showModal = () => setIsModalOpen(true)
 
-  const showModal = () => {
-    setIsModalOpen(true)
-  }
-
-  const addTodo = () => {
-    if (!titleValue.trim()) return
-    const time = Date.now()
-    const newTodo = {
-      id: String(todoList.length + 1),
-      title: titleValue,
-      description: descriptionValue,
-      createdAt: `${time}`,
-      isActive: true,
-      isFavorite: false,
-      isDeleted: false
-    }
-
-    const currentList = getTodoList()
-    const updatedList = [...currentList, newTodo]
-    updateTodoList(updatedList)
-    dispatch(updateListTodoSlice(updatedList))
-
-    setTitleValue('')
-    setDescriptionValue('')
+  const handleAdd = (values) => {
+    addTodoHandler(values, dispatch)
+    form.resetFields()
     setIsModalOpen(false)
   }
 
-  const cancelFunction = () => {
+  const handleCancel = () => {
+    form.resetFields()
     setIsModalOpen(false)
-    setTitleValue('')
-    setDescriptionValue('')
   }
 
   return (
@@ -52,26 +29,22 @@ export const ModalFormTodo = () => {
       <Modal
         title="Добавить новую задачу"
         open={isModalOpen}
-        onOk={addTodo}
-        onCancel={cancelFunction}
+        onCancel={handleCancel}
+        onOk={() => form.submit()}
         okText="Добавить"
         cancelText="Закрыть"
       >
-        <div className={styles.inputWrapper}>
-          <Input
-            placeholder='Заголовок'
-            value={titleValue}
-            onChange={(e) => setTitleValue(e.target.value)}
-          />
-        </div>
-        <div className={styles.inputWrapper}>
-          <TextArea
-            placeholder='Описание'
-            className={styles.textArea}
-            value={descriptionValue}
-            onChange={(e) => setDescriptionValue(e.target.value)}
-          />
-        </div>
+        <Form form={form} layout="vertical" onFinish={handleAdd}>
+          <Form.Item
+            name="title"
+            rules={[{ required: true, message: 'Введите заголовок' }]}
+          >
+            <Input placeholder="Заголовок" />
+          </Form.Item>
+          <Form.Item name="description">
+            <TextArea placeholder="Описание" className={styles.textArea} />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   )
