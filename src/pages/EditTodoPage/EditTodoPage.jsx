@@ -1,44 +1,59 @@
 import { Input, Switch, Space, Button, Modal, Typography, message, Flex, Form, } from 'antd'
 import { CheckOutlined, CloseOutlined, StarFilled, StarOutlined, } from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { updateTodoList } from '../../storage/storage'
-import { useDispatch, useSelector } from 'react-redux'
+import { useEffect, useState, useCallback } from 'react'
+import { getTodoList, updateTodoList } from '../../storage/storage'
+import { useDispatch } from 'react-redux'
 import { updateListTodoSlice } from '../../store/listTodoSlice'
 import TextArea from 'antd/es/input/TextArea'
 import styles from './EditTodoPage.module.css'
-import { selectorTodoById } from '../../store/selectorTodoById'
 
 export const EditTodoPage = () => {
-    const { id } = useParams()
     const [messageApi, contextHolder] = message.useMessage()
-    const [isModalOpen, setIsModalOpen] = useState(false)
-    const [loading, setLoading] = useState(false)
-    const todo = useSelector((state) => selectorTodoById(state, id))
+    const [isModalOpen, setIsModalOpen] = useState()
+    const [loading, setLoading] = useState()
+    const [todo, setTodo] = useState()
+    const [todoList, setTodoList] = useState([])
     const [form] = Form.useForm()
+    const { id } = useParams()
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
-    const syncTodoList = (updatedList) => {
+    useEffect(() => {
+        const list = getTodoList()
+        setTodoList(list)
+    }, [])
+
+    useEffect(() => {
+        if (!id || !todoList.length) return
+        const foundTodo = todoList.find((item) => item.id === id)
+        setTodo(foundTodo || null)
+    }, [id, todoList])
+
+    const syncTodoList = useCallback((updatedList) => {
+        setTodoList(updatedList)
         updateTodoList(updatedList)
         dispatch(updateListTodoSlice(updatedList))
-    }
+    }, [dispatch])
 
-    const updateField = (field, value) => {
+    const updateField = useCallback((field, value) => {
         const updatedList = todoList.map((item) =>
             item.id === id ? { ...item, [field]: value } : item
         )
         syncTodoList(updatedList)
-        setTodo((prev) => ({ ...prev, [field]: value }))
-    }
+        setTodo((prev) => prev ? { ...prev, [field]: value } : prev)
+    }, [id, todoList, syncTodoList])
 
     const saveFunction = async (values) => {
+        if (!todo) return
         setLoading(true)
+
         const updatedList = todoList.map((item) =>
             item.id === id ? { ...item, ...values } : item
         )
         syncTodoList(updatedList)
-        setTodo((prev) => ({ ...prev, ...values }))
+        setTodo((prev) => prev ? { ...prev, ...values } : prev)
+
         messageApi.success('Задача успешно обновлена')
         setLoading(false)
     }
@@ -49,7 +64,9 @@ export const EditTodoPage = () => {
         navigate('/')
     }
 
-    if (!todo) return <h1>todo нет</h1>
+    if (!todo) {
+        return <h1>Задача не найдена</h1>
+    }
 
     return (
         <div className={styles.container}>
@@ -63,7 +80,10 @@ export const EditTodoPage = () => {
                         description: todo.description || '',
                     }}
                 >
-                    <Form.Item name="title">
+                    <Form.Item
+                        name="title"
+                        rules={[{ required: true, message: 'Введите название задачи' }]}
+                    >
                         <Input maxLength={256} />
                     </Form.Item>
 
@@ -87,7 +107,7 @@ export const EditTodoPage = () => {
                     </Button>
                 </Form>
 
-                <Space>
+                <Space direction="vertical" size="middle">
                     <Typography.Paragraph>
                         Задача {todo.isActive ? 'активна' : 'выполнена'}
                         <Switch
@@ -95,11 +115,10 @@ export const EditTodoPage = () => {
                             checkedChildren={<CheckOutlined />}
                             unCheckedChildren={<CloseOutlined />}
                             checked={todo.isActive}
-                            onChange={() =>
-                                updateField('isActive', !todo.isActive)
-                            }
+                            onChange={() => updateField('isActive', !todo.isActive)}
                         />
                     </Typography.Paragraph>
+
                     <Typography.Paragraph>
                         Избранная задача {todo.isFavorite ? 'да' : 'нет'}
                         <Switch
@@ -107,9 +126,7 @@ export const EditTodoPage = () => {
                             checkedChildren={<CheckOutlined />}
                             unCheckedChildren={<CloseOutlined />}
                             checked={todo.isFavorite}
-                            onChange={() =>
-                                updateField('isFavorite', !todo.isFavorite)
-                            }
+                            onChange={() => updateField('isFavorite', !todo.isFavorite)}
                         />
                     </Typography.Paragraph>
                 </Space>
