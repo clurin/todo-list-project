@@ -3,10 +3,9 @@ import { EditFilled, StarFilled, StarOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateListTodoSlice } from '../../store/listTodoSlice'
-import { updateTodoList } from '../../storage/storage'
 import { useState } from 'react'
 import styles from './ListTodo.module.css'
+import { updateTodoThunk } from '../../store/middleware/updateTodoThunk'
 
 export const ListTodo = ({ value }) => {
     const todos = useSelector((state) => state.listTodoSlice.listTodo)
@@ -34,11 +33,8 @@ export const ListTodo = ({ value }) => {
     filteredTodos = [...filteredTodos].sort((a, b) => sortDescending ? b.createdAt - a.createdAt : a.createdAt - b.createdAt)
     const switchSortType = () => setSortDescending((item) => !item)
 
-    const switchFavorite = (id) => {
-        const updatedTodos = todos.map((item) => item.id === id ? { ...item, isFavorite: !item.isFavorite } : item)
-
-        dispatch(updateListTodoSlice(updatedTodos))
-        updateTodoList(updatedTodos)
+    const switchFavorite = (id, isFavorite) => {
+        dispatch(updateTodoThunk({ id, changes: { isFavorite: !isFavorite } }))
     }
 
     return (
@@ -76,7 +72,7 @@ export const ListTodo = ({ value }) => {
                                     icon={
                                         item.isFavorite ? <StarFilled /> : <StarOutlined />
                                     }
-                                    onClick={() => switchFavorite(item.id)}
+                                    onClick={() => switchFavorite(item.id, item.isFavorite)}
                                 />
                             )}
                         </Flex>

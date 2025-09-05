@@ -1,65 +1,38 @@
 import { Input, Switch, Space, Button, Modal, Typography, message, Flex, Form, } from 'antd'
 import { CheckOutlined, CloseOutlined, StarFilled, StarOutlined, } from '@ant-design/icons'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useEffect, useState, useCallback } from 'react'
-import { getTodoList, updateTodoList } from '../../storage/storage'
-import { useDispatch } from 'react-redux'
-import { updateListTodoSlice } from '../../store/listTodoSlice'
+import { useState, useCallback } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import TextArea from 'antd/es/input/TextArea'
 import styles from './EditTodoPage.module.css'
+import { updateTodoThunk } from '../../store/middleware/updateTodoThunk'
 
 export const EditTodoPage = () => {
-    const [messageApi, contextHolder] = message.useMessage()
-    const [isModalOpen, setIsModalOpen] = useState()
-    const [loading, setLoading] = useState()
-    const [todo, setTodo] = useState()
-    const [todoList, setTodoList] = useState([])
-    const [form] = Form.useForm()
     const { id } = useParams()
+    const [messageApi, contextHolder] = message.useMessage()
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
+    const todoList = useSelector((state) => state.listTodoSlice.listTodo)
+    const todo = todoList.find((item) => item.id === id)
+    const [form] = Form.useForm()
     const navigate = useNavigate()
     const dispatch = useDispatch()
 
-    useEffect(() => {
-        const list = getTodoList()
-        setTodoList(list)
-    }, [])
-
-    useEffect(() => {
-        if (!id || !todoList.length) return
-        const foundTodo = todoList.find((item) => item.id === id)
-        setTodo(foundTodo || null)
-    }, [id, todoList])
-
-    const syncTodoList = useCallback((updatedList) => {
-        setTodoList(updatedList)
-        updateTodoList(updatedList)
-        dispatch(updateListTodoSlice(updatedList))
-    }, [dispatch])
-
     const updateField = useCallback((field, value) => {
-        const updatedList = todoList.map((item) =>
-            item.id === id ? { ...item, [field]: value } : item
-        )
-        syncTodoList(updatedList)
-        setTodo((prev) => prev ? { ...prev, [field]: value } : prev)
-    }, [id, todoList, syncTodoList])
+        dispatch(updateTodoThunk({ id, changes: { [field]: value } }))
+    }, [dispatch, id])
 
     const saveFunction = async (values) => {
-        if (!todo) return
         setLoading(true)
 
-        const updatedList = todoList.map((item) =>
-            item.id === id ? { ...item, ...values } : item
-        )
-        syncTodoList(updatedList)
-        setTodo((prev) => prev ? { ...prev, ...values } : prev)
+        dispatch(updateTodoThunk({ id, changes: values }))
 
         messageApi.success('Задача успешно обновлена')
         setLoading(false)
     }
 
     const deleteTodo = () => {
-        updateField('isDeleted', true)
+        dispatch(updateTodoThunk({ id, changes: { isDeleted: true } }))
         setIsModalOpen(false)
         navigate('/')
     }

@@ -1,28 +1,19 @@
 import { EditFilled, StarFilled, StarOutlined } from '@ant-design/icons'
 import { Button, Space, Typography } from 'antd'
-import React, { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getTodoList } from '../../storage/storage'
 import { ROUTES } from '../../constants/routes'
 import styles from './DetailTodoPage.module.css'
+import { useSelector } from 'react-redux'
 
 export const DetailTodoPage = () => {
     const { id } = useParams()
-    const [todo, setTodo] = useState()
-    const [todoList] = useState(getTodoList())
-
-    useEffect(() => {
-        if (todoList) {
-            const foundTodo = todoList.find((item) => item.id === id)
-            setTodo(foundTodo)
-        }
-    }, [id, todoList])
-
+    const todoList = useSelector((state) => state.listTodoSlice.listTodo)
+    const todo = todoList.find((item) => item.id === id)
     if (!todo) return <h1>todo нет</h1>
 
     return (
         <div>
-            <div key={todo.id} className={styles.container}>
+            <div className={styles.container}>
                 <Space direction="vertical">
                     <Typography.Title level={3}>
                         {todo.title}
